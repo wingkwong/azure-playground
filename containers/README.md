@@ -25,3 +25,12 @@ docker login wingkwong.azurecr.io
 ```bash
 docker push wingkwong.azurecr.io/helloworld-web:v1
 ```
+
+# Create and Run ASP.NET Core App
+```bash
+mkdir helloworld
+cd helloworld
+dotnet new mvc
+dotnet build
+dotnet run
+```
