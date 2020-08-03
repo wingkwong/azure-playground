@@ -55,7 +55,9 @@ Copy files from src to dist in DBFS
 %fs cp -r dbfs:/src dbfs:/dist
 ```
 
-## Setup Mount Point
+## Setup Mount Point for Blob Storage
+
+Using an old driver called WASB 
 
 ### Create Secret Scope
 
@@ -88,13 +90,57 @@ dbutils.fs.mount(
 )
 ```
 
-To verify in Databricks Notebook, 
+To verify in Databricks Notebook
 
 ```python
 %fs dbfs:/mnt/<mount-name>
+```
+
+## Setup Mount Point for ADLS Gen 2
+
+Requiring the following items
+
+- ``application-id``: An ID that uniquely identifies the application.
+- ``directory-id``: An ID that uniquely identifies the Azure AD instance.
+- ``storage-account-name``: The name of the storage account.
+- ``service-credential``: A string that the application uses to prove its identity.
+
+### Create Mount Point 
+
+```python
+configs = {"fs.azure.account.auth.type": "OAuth",
+           "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
+           "fs.azure.account.oauth2.client.id": "<application-id>",
+           "fs.azure.account.oauth2.client.secret": dbutils.secrets.get(scope="<scope-name>",key="<service-credential-key-name>"),
+           "fs.azure.account.oauth2.client.endpoint": "https://login.microsoftonline.com/<directory-id>/oauth2/token"}
+
+# Optionally, you can add <directory-name> to the source URI of your mount point.
+dbutils.fs.mount(
+  source = "abfss://<file-system-name>@<storage-account-name>.dfs.core.windows.net/",
+  mount_point = "/mnt/<mount-name>",
+  extra_configs = configs)
+```
+
+## Common issues
+
+### No output files written in storage 
+
+Probably it is out of memory. Try adjust the hardware settings. 
+
+### Clusters settings not apply to jobs 
+
+Make sure the cluster is interactive or automated. Interactive one is for notebooks. If you create a job, you should be able to modify the cluster settings in the job creation page. 
+
+### Spark conf is not supported via cluster settings for spark-submit task
+
+Self-explanatory 
+
+```
+{"error_code":"INVALID_PARAMETER_VALUE","message":"Spark conf is not supported via cluster settings for spark-submit task. Please use spark-submit parameters to set spark conf."}
 ```
 
 ## References:
 
 - [Databricks File System (DBFS)](https://docs.databricks.com/data/databricks-file-system.html)
 - [Create a Databricks-backed secret scope](https://docs.databricks.com/security/secrets/secret-scopes.html)
+- [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/azure-datalake-gen2)
