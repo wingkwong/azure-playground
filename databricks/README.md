@@ -121,6 +121,15 @@ dbutils.fs.mount(
   extra_configs = configs)
 ```
 
+## Performance Tuning 
+
+- Use Ganglia to see the metrics and gain insights
+
+- Use Spark 3.0 if your application contians lots of joining logic
+    - Adaptive Query Execution to speed up Spark SQL at runtime 
+    - Ref: https://databricks.com/blog/2020/05/29/adaptive-query-execution-speeding-up-spark-sql-at-runtime.html
+    - Simply enable it by setting ``spark.sql.adaptive.enabled`` to ``true``
+
 ## Common issues
 
 ### No output files written in storage 
@@ -138,6 +147,18 @@ Self-explanatory
 ```
 {"error_code":"INVALID_PARAMETER_VALUE","message":"Spark conf is not supported via cluster settings for spark-submit task. Please use spark-submit parameters to set spark conf."}
 ```
+
+### Custom Dependencies cannot be found
+
+Suppose your package is located in ``/dbfs/databricks/driver/jobs/``, add the following code in your entry point.
+
+Python Example:
+
+```python
+import sys
+sys.path.append("/dbfs/databricks/driver/jobs/")
+```
+
 
 ## References:
 
